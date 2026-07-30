@@ -17,7 +17,7 @@ export default async function AuthPage({
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-6 flex items-center justify-center">
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full flex flex-col items-center justify-center">
         <AuthView path={path} />
       </div>
     </div>

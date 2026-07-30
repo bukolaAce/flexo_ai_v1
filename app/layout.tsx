@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Flexo",
-  description: "AI-generated training plans",
+  title: "FlexoAi",
+  description: "AI-powered platform that generates personalized strength training programs tailored to each user's goals, experience, and schedule.",
 };
 
 export default function RootLayout({
