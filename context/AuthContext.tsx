@@ -9,12 +9,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { TrainingPlan, User, UserProfile } from "@/types";
+import type { TrainingPlan, UserProfile } from "@/types";
 import { authClient } from "@/lib/auth/client";
 import { api } from "@/lib/api";
 
 interface AuthContextType {
-  user: User | null;
+  user: any;
   plan: TrainingPlan | null;
   isLoading: boolean;
   saveProfile: (
@@ -27,92 +27,85 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const [neonUser, setNeonUser] = useState<any>(null);
+  // Reactive session — updates automatically on sign-in/sign-out,
+  // unlike a one-shot getSession() call in a mount-only effect.
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user ?? null;
+
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const isRefreshingRef = useRef(false);
 
-  // refreshData memoize
-  const refreshData = useCallback(async (userId?: string) => {
-    const id = userId ?? neonUser?.id;
-    if (!id || isRefreshingRef.current) return;
+  const refreshData = useCallback(
+    async (userId?: string) => {
+      const id = userId ?? user?.id;
+      if (!id || isRefreshingRef.current) return;
 
-    isRefreshingRef.current = true;
+      isRefreshingRef.current = true;
 
-    try {
-      // Fetch profile
-      // const profileData =
-
-      // Fetch Plan
-      const planData = await api.getCurrentPlan(id).catch(() => null);
-      if (planData) {
-        setPlan({
-          id: planData.id,
-          userId: planData.userId,
-          overview: planData.planJson.overview,
-          weeklySchedule: planData.planJson.weeklySchedule,
-          progression: planData.planJson.progression,
-          version: planData.version,
-          createdAt: planData.createdAt,
-        });
-      }
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-    } finally {
-      isRefreshingRef.current = false;
-    }
-  }, [neonUser?.id]);
-
-  useEffect(() => {
-    async function loadUser() {
       try {
-        const result = await authClient.getSession();
-        const user = result?.data?.user ?? null;
-        setNeonUser(user);
-
-        if (user?.id) {
-          await refreshData(user.id);
+        const planData = await api.getCurrentPlan(id).catch(() => null);
+        if (planData) {
+          setPlan({
+            id: planData.id,
+            userId: planData.userId,
+            overview: planData.planJson.overview,
+            weeklySchedule: planData.planJson.weeklySchedule,
+            progression: planData.planJson.progression,
+            version: planData.version,
+            createdAt: planData.createdAt,
+          });
         } else {
           setPlan(null);
         }
-      } catch (err) {
-        setNeonUser(null);
-        setPlan(null);
+      } catch (error) {
+        console.error("Error refreshing data:", error);
       } finally {
-        setIsLoading(false);
+        isRefreshingRef.current = false;
       }
-    }
+    },
+    [user?.id],
+  );
 
-    loadUser();
+  // Runs whenever the session actually changes — sign-in, sign-out,
+  // or the initial load resolving — since `user?.id` now comes from
+  // the reactive hook above instead of a stale one-time fetch.
+  useEffect(() => {
+    if (isPending) return;
+
+    if (user?.id) {
+      refreshData(user.id);
+    } else {
+      setPlan(null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id, isPending]);
 
   async function saveProfile(
     profileData: Omit<UserProfile, "userId" | "updatedAt">,
   ) {
-    if (!neonUser) {
+    if (!user) {
       throw new Error("User must be authenticated to save profile");
     }
 
-    await api.saveProfile(neonUser.id, profileData);
-    await refreshData();
+    await api.saveProfile(user.id, profileData);
+    await refreshData(user.id);
   }
 
   async function generatePlan() {
-    if (!neonUser) {
+    if (!user) {
       throw new Error("User must be authenticated to generate plan");
     }
 
-    await api.generatePlan(neonUser.id);
-    await refreshData();
+    await api.generatePlan(user.id);
+    await refreshData(user.id);
   }
 
   return (
     <AuthContext.Provider
       value={{
-        user: neonUser,
+        user,
         plan,
-        isLoading,
+        isLoading: isPending,
         saveProfile,
         generatePlan,
         refreshData,

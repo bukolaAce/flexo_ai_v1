@@ -51,11 +51,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-accent)]/5 via-transparent to-transparent" />
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[var(--color-accent)]/10 rounded-full blur-3xl" />
-
+      <section className="relative pt-32 pb-20 px-6 border-b border-[var(--color-border)]">
         <div className="relative max-w-6xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--color-card)] border border-[var(--color-border)] mb-8">
             <Zap className="w-4 h-4 text-[var(--color-accent)]" />
@@ -83,7 +79,7 @@ export default function Home() {
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/onboarding">
+            <Link href="/auth/sign-in">
               <Button variant="secondary" size="lg">
                 Sign In
               </Button>
