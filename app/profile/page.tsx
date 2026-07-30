@@ -1,9 +1,11 @@
 "use client";
 
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
 import {
+  ArrowLeft,
   Calendar,
   Dumbbell,
   RefreshCcw,
@@ -37,6 +39,14 @@ export default function Profile() {
   return (
     <div className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-4xl mx-auto">
+        <Link
+          href="/onboarding"
+          className="inline-flex items-center gap-2 text-sm text-[var(--color-muted)] hover:text-[var(--color-foreground)] transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Onboarding
+        </Link>
+
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-1">Your Training Plan</h1>
